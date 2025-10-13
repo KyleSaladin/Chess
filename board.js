@@ -80,6 +80,7 @@ export class Board {
         if (this.containsArray(this.moves, [tX, tY])) {
             const piece = this.pieces[fX][fY];
             piece.move(tX, tY, this.pieces);
+            this.turn *= -1;
             return true;
         }
         return false;
@@ -105,8 +106,9 @@ export class Board {
                 if (move == false) {
                     this.moves = this.getPieceMoves(x, y);
                 }
-                turn *= -1;
-                this.moves = [];
+                else {
+                    this.moves = [];
+                }
             }
             this.previousX = Math.ceil(event.clientX / this.tileSize) - 1;
             this.previousY = Math.ceil(event.clientY / this.tileSize) - 1;
