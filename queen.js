@@ -7,7 +7,7 @@ export class Queen extends Piece {
     }
 
     draw(ctx, size, lightColor, darkColor) {
-        this.drawPiece(ctx, size, 40, lightColor, darkColor)
+        this.drawPiece(ctx, size, 60, lightColor, darkColor)
     }
 
     getMoves(board) {
