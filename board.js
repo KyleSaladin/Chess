@@ -7,6 +7,8 @@ export class Board {
         this.sizeY = sizeY;
         this.tileSize = tileSize
 
+        this.turn = 1;
+
         this.pieces = [];
 
         this.previousX = -1;
@@ -67,7 +69,9 @@ export class Board {
             return [];
         }
         if (this.pieces[x][y] != null) {
-            return this.pieces[x][y].getMoves(this);
+            if((this.turn == 1 && this.pieces[x][y].color == "white") || (this.turn == -1 && this.pieces[x][y].color == "black")){
+                return this.pieces[x][y].getMoves(this);
+            }
         }
         return [];
     }
@@ -101,6 +105,7 @@ export class Board {
                 if (move == false) {
                     this.moves = this.getPieceMoves(x, y);
                 }
+                turn *= -1;
                 this.moves = [];
             }
             this.previousX = Math.ceil(event.clientX / this.tileSize) - 1;
