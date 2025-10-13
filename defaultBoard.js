@@ -11,7 +11,7 @@ export class DefaultBoard extends Board {
     constructor(posX, posY, tileSize) {
         super(posX, posY, 8, 8, tileSize);
 
-        this.layout = "rnbqkbnrpppppppp------------------p------p------PPPPPPPPRNBQKBNR"; //"rnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNR";
+        this.layout = "rnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNR"; //"rnbqkbnrpppppppp--------------------------------PPPPPPPPRNBQKBNR";
 
         this.pieceTypes = {
             r: (row, col) => new Rook("white", row, col),
