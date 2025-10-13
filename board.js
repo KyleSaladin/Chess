@@ -15,19 +15,13 @@ export class Board {
         this.previousY = -1;
 
         this.moves = [];
+
+        this.previousMove = [];
     }
 
     draw(ctx, lightColor, darkColor, highlightColor) {
         this.drawBoard(ctx, lightColor, darkColor);
-        for (let move of this.moves) {
-            if (!move) {
-                continue;
-            }
-            ctx.fillStyle = highlightColor;
-
-            ctx.fillRect(move[0] * this.tileSize, move[1] * this.tileSize, this.tileSize, this.tileSize);
-        }
-
+        this.drawBoardHighlights(ctx, highlightColor);
         this.drawPieces(ctx, lightColor, darkColor);
     }
 
@@ -47,11 +41,21 @@ export class Board {
         }
     }
 
-    generatePieces() {
-    }
+    drawBoardHighlights(ctx, highlightColor) {
+        if (this.previousMove != []) {
+            ctx.fillStyle = highlightColor;
 
-    getPieces() {
+            ctx.fillRect(this.previousMove[0] * this.tileSize, this.previousMove[1] * this.tileSize, this.tileSize, this.tileSize);
+            ctx.fillRect(this.previousMove[2] * this.tileSize, this.previousMove[3] * this.tileSize, this.tileSize, this.tileSize);
+        }
+        for (let move of this.moves) {
+            if (!move) {
+                continue;
+            }
+            ctx.fillStyle = highlightColor;
 
+            ctx.fillRect(move[0] * this.tileSize, move[1] * this.tileSize, this.tileSize, this.tileSize);
+        }
     }
 
     drawPieces(ctx, lightColor, darkColor) {
@@ -69,24 +73,31 @@ export class Board {
             return [];
         }
         if (this.pieces[x][y] != null) {
-            if((this.turn == 1 && this.pieces[x][y].color == "white") || (this.turn == -1 && this.pieces[x][y].color == "black")){
-                return this.pieces[x][y].getMoves(this);
+            if ((this.turn == 1 && this.pieces[x][y].color == "white") || (this.turn == -1 && this.pieces[x][y].color == "black")) {
+                return this.pieces[x][y].getMoves(this, this.previousMove);
             }
         }
         return [];
     }
 
-    movePiece(fX, fY, tX, tY) {
+    movePiece(fX, fY, tX, tY, previousMove) {
+        console.log(this.moves);
         if (this.containsArray(this.moves, [tX, tY])) {
+            
+
             const piece = this.pieces[fX][fY];
-            piece.move(tX, tY, this.pieces);
+            piece.move(tX, tY, this.pieces, previousMove);
             this.turn *= -1;
+            this.previousMove = [fX, fY, tX, tY, piece.type];
             return true;
         }
         return false;
     }
 
     containsArray(array, pair) {
+        if (array.length == 0) {
+            return false;
+        }
         return array.some(sub =>
             sub.length === pair.length && sub.every((val, i) => val === pair[i])
         );
@@ -102,7 +113,7 @@ export class Board {
                 this.moves = this.getPieceMoves(x, y);
             }
             else {
-                let move = this.movePiece(this.previousX, this.previousY, x, y, this.moves);
+                let move = this.movePiece(this.previousX, this.previousY, x, y, this.previousMove);
                 if (move == false) {
                     this.moves = this.getPieceMoves(x, y);
                 }

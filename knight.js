@@ -11,6 +11,6 @@ export class Knight extends Piece {
     }
 
     getMoves(board) {
-        return getSlideMoves(this, board, [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]], 2, true);
+        return getSlideMoves(this, board, [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]], 1, true);
     }
 }
