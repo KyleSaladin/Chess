@@ -121,7 +121,14 @@ export class Board {
         console.log(x + ", " + y);
         if (event.button == 0) {
             if (this.moves.length == 0) {
+<<<<<<< Updated upstream
                 potentialMoves = this.getPieceMoves(x, y);
+=======
+                this.moves = this.getPieceMoves(x, y);
+                this.previousX = Math.ceil(event.clientX / this.tileSize) - 1;
+                this.previousY = Math.ceil(event.clientY / this.tileSize) - 1;
+                return null;
+>>>>>>> Stashed changes
             }
             else {
                 let move = this.movePiece(this.previousX, this.previousY, x, y, this.previousMove);
@@ -135,9 +142,11 @@ export class Board {
             this.moves = this.validateMoves(potentialMoves, x, y);
             this.previousX = Math.ceil(event.clientX / this.tileSize) - 1;
             this.previousY = Math.ceil(event.clientY / this.tileSize) - 1;
+            return previousMove;
         }
     }
 
+<<<<<<< Updated upstream
     validateMoves(potentialMoves, x, y) {
         let validMoves = [];
         for (let move of potentialMoves) {
@@ -182,5 +191,12 @@ export class Board {
             }
             return this.blackKing.isInCheck(this, this.previousMove);
         }
+=======
+    movePieceWithoutValidation(fX, fY, tX, tY) {
+        const piece = this.pieces[fX][fY];
+        piece.move(tX, tY, this.pieces, previousMove);
+        this.turn *= -1;
+        this.previousMove = [fX, fY, tX, tY, piece.type];
+>>>>>>> Stashed changes
     }
 }

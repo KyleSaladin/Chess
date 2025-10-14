@@ -1,5 +1,10 @@
 import { DefaultBoard } from './defaultBoard.js';
 
+import { io } from "socket.io-client";
+const socket = io("http://localhost:3000");
+
+
+
 const canvas = document.getElementById("MainCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -45,7 +50,14 @@ colorPickerHighlight.addEventListener("input", (event) => {
 });
 
 document.addEventListener("mousedown", (event) => {
-    myBoard.onClick(event);
+    let move = myBoard.onClick(event);
+    if (move != null) {
+        socket.emit("move", move);
+    }
+});
+
+socket.on("updateBoard", (data) => {
+    myBoard.movePieceWithoutValidation(data[0], data[1], data[2], data[3]);
 });
 
 
