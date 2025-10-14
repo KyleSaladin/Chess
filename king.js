@@ -42,6 +42,7 @@ export class King extends Piece {
             }
         }
 
+        console.log(moves);
         return moves;
     }
 
@@ -66,44 +67,5 @@ export class King extends Piece {
         if (this.type == "Pawn" || this.type == "King" || this.type == "Rook") {
             this.moved = true;
         }
-    }
-
-    isInCheck(board, previousMove, newX, newY) {
-        for (let y = 0; y < board.sizeY; y++) {
-            for (let x = 0; x < board.sizeX; x++) {
-                let piece = board.pieces[x][y];
-                if (piece == null || piece.color == this.color) {
-                    continue;
-                }
-                let moves = piece.getMoves(board, previousMove);
-
-                let kingPosX = this.posX;
-                let kingPosY = this.posY;
-
-                if (newX != null || newY != null) {
-                    kingPosX = newX;
-                    kingPosY = newY;
-                }
-
-                if (this.containsArray(moves, [kingPosX, kingPosY])) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    containsArray(array, pair) {
-        if (array.length == 0) {
-            return false;
-        }
-        return array.some(sub =>
-            sub.length === pair.length && sub.every((val, i) => val === pair[i])
-        );
-    }
-
-
-    clone() {
-        return new King(this.color, this.posX, this.posY);
     }
 }

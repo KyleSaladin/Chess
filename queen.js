@@ -13,8 +13,4 @@ export class Queen extends Piece {
     getMoves(board) {
         return getSlideMoves(this, board, [[1, 0], [0, -1], [-1, 0], [0, 1], [1, 1], [-1, -1], [-1, 1], [1, -1]], -1, false);
     }
-
-    clone() {
-        return new Queen(this.color, this.posX, this.posY);
-    }
 }

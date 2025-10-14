@@ -51,16 +51,10 @@ export class Pawn extends Piece{
         this.posX = tX;
         this.posY = tY;
         this.moved = true;
-
-        return [tX, this.posY];
     }
 
     isEnPassant(previousMove) {
         let forward = (this.color == "white") ? 1 : -1;
         return previousMove[4] == "Pawn" && Math.abs(previousMove[3] - previousMove[1]) == 2 && previousMove[1] == this.posY + forward * 2; 
-    }
-
-    clone() {
-        return new Pawn(this.color, this.posX, this.posY);
     }
 }
