@@ -44,6 +44,26 @@ export class DefaultBoard extends Board {
             let y = Math.floor(i / 8);
             const char = this.layout.charAt(i);
             this.pieces[x][y] = this.pieceTypes[char]?.(x, y) || null;
+            if (this.pieces[x][y] != null && this.pieces[x][y].type == "King") {
+                this.assignKings(this.pieces[x][y]);
+            }
+        }
+    }
+
+    tempMovePiece(fX, fY, tX, tY) {
+        const piece = this.pieces[fX][fY];
+
+        if (piece.type == "Pawn") {
+            let enPassantCapturePosition = piece.move(tX, tY, this.pieces, this.previousMove);
+            if (enPassantCapturePosition != null) {
+                console.log("EnPassant Capture at: " + enPassantCapturePosition);
+                this.pieces[enPassantCapturePosition[0]][enPassantCapturePosition[1]] = new Pawn(((piece.color == "black") ? "white" : "black"), enPassantCapturePosition[0], enPassantCapturePosition[1]);
+            }
+            piece.hasMoved = false;
+        }
+        else {
+            this.pieces[tX][tY] = piece;
+            this.pieces[fX][fY] = null;
         }
     }
 }

@@ -17,6 +17,9 @@ export class Board {
         this.moves = [];
 
         this.previousMove = [];
+
+        this.whiteKing = null;
+        this.blackKing = null;
     }
 
     draw(ctx, lightColor, darkColor, highlightColor) {
@@ -68,6 +71,15 @@ export class Board {
         }
     }
 
+    assignKings(piece) {
+        if (piece.color == "white") {
+            this.whiteKing = piece;
+        }
+        if (piece.color == "black") {
+            this.blackKing = piece;
+        }
+    }
+
     getPieceMoves(x, y) {
         if (x < 0 || x > this.sizeX - 1 || y < 0 || y > this.sizeY - 1) {
             return [];
@@ -80,15 +92,14 @@ export class Board {
         return [];
     }
 
-    movePiece(fX, fY, tX, tY, previousMove) {
-        console.log(this.moves);
+    movePiece(fX, fY, tX, tY) {
         if (this.containsArray(this.moves, [tX, tY])) {
-            
-
             const piece = this.pieces[fX][fY];
-            piece.move(tX, tY, this.pieces, previousMove);
+            piece.move(tX, tY, this.pieces, this.previousMove);
             this.turn *= -1;
             this.previousMove = [fX, fY, tX, tY, piece.type];
+
+
             return true;
         }
         return false;
@@ -104,25 +115,72 @@ export class Board {
     }
 
     onClick(event) {
-
+        let potentialMoves = [];
         const x = Math.ceil(event.clientX / this.tileSize) - 1;
         const y = Math.ceil(event.clientY / this.tileSize) - 1;
         console.log(x + ", " + y);
         if (event.button == 0) {
             if (this.moves.length == 0) {
-                this.moves = this.getPieceMoves(x, y);
+                potentialMoves = this.getPieceMoves(x, y);
             }
             else {
                 let move = this.movePiece(this.previousX, this.previousY, x, y, this.previousMove);
                 if (move == false) {
-                    this.moves = this.getPieceMoves(x, y);
+                    potentialMoves = this.getPieceMoves(x, y);
                 }
                 else {
                     this.moves = [];
                 }
             }
+            this.moves = this.validateMoves(potentialMoves, x, y);
             this.previousX = Math.ceil(event.clientX / this.tileSize) - 1;
             this.previousY = Math.ceil(event.clientY / this.tileSize) - 1;
+        }
+    }
+
+    validateMoves(potentialMoves, x, y) {
+        let validMoves = [];
+        for (let move of potentialMoves) {
+            if (!this.willBeInCheck(move, x, y)) {
+                validMoves.push(move);
+            }
+        }
+        return validMoves;
+    }
+
+    willBeInCheck(move, x, y) {
+        const capturedPiece = this.pieces[move[0]][move[1]];
+        const piece = this.pieces[x][y];
+        //console.log("Check for check:\n---------------------");
+        //console.table(this.pieces);
+        this.tempMovePiece(x, y, move[0], move[1]);
+        let inCheck = this.checkForCheck(piece, move);
+        this.tempMovePiece(move[0], move[1], x, y);
+        //console.log("---------------------------------------");
+        this.pieces[move[0]][move[1]] = capturedPiece;
+        return inCheck;
+    }
+
+
+    tempMovePiece(fX, fY, tX, tY) {
+        const piece = this.pieces[fX][fY];
+
+        this.pieces[tX][tY] = piece;
+        this.pieces[fX][fY] = null;
+    }
+
+    checkForCheck(piece, move) {
+        if (this.turn == 1) {
+            if (piece.type == "King") {
+                return this.whiteKing.isInCheck(this, this.previousMove, move[0], move[1]);
+            }
+            return this.whiteKing.isInCheck(this, this.previousMove);
+        }
+        else {
+            if (piece.type == "King") {
+                return this.blackKing.isInCheck(this, this.previousMove, move[0], move[1]);
+            }
+            return this.blackKing.isInCheck(this, this.previousMove);
         }
     }
 }

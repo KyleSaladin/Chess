@@ -14,4 +14,8 @@ export class Rook extends Piece {
     getMoves(board) {
         return getSlideMoves(this, board, [[1, 0], [0, -1], [-1, 0], [0, 1]], -1, false);
     }
+
+    clone() {
+        return new Rook(this.color, this.posX, this.posY);
+    }
 }
