@@ -11,7 +11,6 @@ export class Bishop extends Piece {
     }
 
     getMoves(board) {
-        console.log(board);
         return getSlideMoves(this, board, [[1, 1], [-1, -1], [-1, 1], [1, -1]], -1, false);
     }
 }

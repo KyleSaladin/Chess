@@ -52,7 +52,6 @@ export class Piece {
     }
 
     move(tX, tY, board) {
-        console.log(board[this.posX][this.posY]);
         board[this.posX][this.posY] = null;
         board[tX][tY] = this;
         this.posX = tX;
@@ -64,5 +63,11 @@ export class Piece {
 
     setAlpha(rgbaString, newAlpha) {
         return rgbaString.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, `rgba($1, $2, $3, ${newAlpha})`);
+    }
+
+
+
+    clone() {
+        
     }
 }
