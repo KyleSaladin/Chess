@@ -1,7 +1,7 @@
 import { DefaultBoard } from './defaultBoard.js';
 
 import { io } from "https://cdn.socket.io/4.5.4/socket.io.esm.min.js";
-let socket = io("http://10.47.1.34:3000");
+let socket = io("https://chess-4bq0.onrender.com");
 
 
 const canvas = document.getElementById("MainCanvas");
