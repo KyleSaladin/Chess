@@ -37,12 +37,17 @@ io.on("connection", (socket) => {
 
         socket.data.color = color;
         socket.emit("assignColor", color);
+        io.to(roomId).emit("requestBoardPosition");
 
         console.log("A user connected");
     });
     socket.on("move", (data) => {
         console.log("Server is running");
         socket.to(socket.data.roomId).emit("updateBoard", data);
+    });
+    socket.on("returnBoardPosition", (data) => {
+        console.log("Returning board position");
+        socket.to(socket.data.roomId).emit("retrieveBoardPosition", data);
     });
 
     socket.on("disconnect", () => {

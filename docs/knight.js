@@ -10,4 +10,11 @@ export class Knight extends Piece {
     getMoves(board) {
         return getSlideMoves(this, board, [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]], 1, true);
     }
+
+    getTypeChar() {
+        if (this.color == "white") {
+            return 'n';
+        }
+        return 'N';
+    }
 }

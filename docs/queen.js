@@ -10,4 +10,11 @@ export class Queen extends Piece {
     getMoves(board) {
         return getSlideMoves(this, board, [[1, 0], [0, -1], [-1, 0], [0, 1], [1, 1], [-1, -1], [-1, 1], [1, -1]], -1, false);
     }
+
+    getTypeChar() {
+        if (this.color == "white") {
+            return 'q';
+        }
+        return 'Q';
+    }
 }

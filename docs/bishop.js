@@ -10,4 +10,11 @@ export class Bishop extends Piece {
     getMoves(board) {
         return getSlideMoves(this, board, [[1, 1], [-1, -1], [-1, 1], [1, -1]], -1, false);
     }
+
+    getTypeChar() {
+        if (this.color == "white") {
+            return 'b';
+        }
+        return 'B';
+    }
 }

@@ -103,7 +103,7 @@ export class Board {
             return [];
         }
         if (this.pieces[x][y] != null) {
-            if ((this.turn == 1 && this.pieces[x][y].color == "white" && this.clientColor == "white") || (this.turn == -1 && this.pieces[x][y].color == "black" && this.clientColor == "black")) {
+            if ((this.turn == 1 && this.pieces[x][y].color == "white" && (this.clientColor == "white" || this.clientColor == "both")) || (this.turn == -1 && this.pieces[x][y].color == "black" && (this.clientColor == "black" || this.clientColor == "both"))) {
                 return this.pieces[x][y].getMoves(this, this.previousMove);
             }
         }

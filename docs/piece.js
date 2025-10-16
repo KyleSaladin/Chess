@@ -58,14 +58,10 @@ export class Piece {
     }
 
     move(tX, tY, board) {
-        console.log(board[this.posX][this.posY]);
-        board[this.posX][this.posY] = null;
         board[tX][tY] = this;
+        board[this.posX][this.posY] = null;
         this.posX = tX;
         this.posY = tY;
-        if (this.type == "Pawn" || this.type == "King" || this.type == "Rook") {
-            this.moved = true;
-        }
     }
 
     setAlpha(rgbaString, newAlpha) {

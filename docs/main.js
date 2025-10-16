@@ -1,7 +1,7 @@
 import { DefaultBoard } from './defaultBoard.js';
 
 import { io } from "https://cdn.socket.io/4.5.4/socket.io.esm.min.js";
-let socket = io("https://chess-4bq0.onrender.com");
+let socket = io("http://localhost:3000/");//https://chess-4bq0.onrender.com");
 
 
 const canvas = document.getElementById("MainCanvas");
@@ -11,7 +11,8 @@ const colorPickerDark = document.getElementById("ColorPickerDark");
 const colorPickerLight = document.getElementById("ColorPickerLight");
 const colorPickerHighlight = document.getElementById("ColorPickerHighlight");
 
-const joinRoomButton = document.getElementById("JoinRoomButton").addEventListener("click", joinRoom);
+document.getElementById("JoinRoomButton").addEventListener("click", joinRoom);
+document.getElementById("SinglePlayerButton").addEventListener("click", joinSinglePlayer);
 
 // Get device pixel ratio
 const DPR = window.devicePixelRatio || 1;
@@ -53,7 +54,7 @@ colorPickerHighlight.addEventListener("input", (event) => {
 document.addEventListener("mousedown", (event) => {
     if (!connected) return;
     let move = myBoard.onClick(event);
-    if (move != null) {
+    if (move != null && !singlePlayer) {
         console.log("Send move", move);
         socket.emit("move", move);
     }
@@ -65,10 +66,34 @@ socket.on("assignColor", (color) => {
 });
 
 socket.on("updateBoard", (data) => {
-    console.log("Received move", data);
     if (data != [[],[]]) {
         myBoard.movePieceWithoutValidation(data);
     }
+});
+
+socket.on("requestBoardPosition", (data) => {
+    if (myBoard.clientColor == "white") {
+        let piecesToSend = "";
+        for (let y = 0; y < myBoard.sizeY; y++) {
+            for (let x = 0; x < myBoard.sizeX; x++) {
+                console.log(myBoard.pieces[x][y]);
+                if (myBoard.pieces[x][y] == null) {
+                    piecesToSend += "-";
+                    continue;
+                }
+                piecesToSend += myBoard.pieces[x][y].getTypeChar();
+           }
+        }
+        socket.emit("returnBoardPosition", piecesToSend);
+    }
+});
+
+socket.on("retrieveBoardPosition", (data) => {
+    if (myBoard.clientColor == "black") { return; }
+    console.log("Board position retrieved");
+    console.log(data);
+    myBoard.generatePieces(data);
+    console.log(myBoard.pieces);
 });
 function closeOverlay() {
     document.getElementById("roomOverlay").style.display = "none";
@@ -84,6 +109,22 @@ function joinRoom() {
         connected = true;
     }
 }
+function joinSinglePlayer() {
+    singlePlayer = true;
+    closeOverlay();
+    connected = true;
+
+    const random = Math.round(Math.random());
+    if (random == 0) {
+        myBoard.clientColor = "white";
+    }
+    else {
+        myBoard.clientColor = "black";
+    }
+    myBoard.clientColor = "both";
+}
+
+let singlePlayer = false;
 
 const tileSize = Math.min(displayWidth, displayHeight) / 8
 let myBoard = new DefaultBoard(0, 0, tileSize);

@@ -28,10 +28,10 @@ export class DefaultBoard extends Board {
             P: (row, col) => new Pawn("black", row, col)
         }
 
-        this.generatePieces();
+        this.generatePieces(this.layout);
     }
 
-    generatePieces() {
+    generatePieces(layout) {
         for (let y = 0; y < 8; y++) {
             this.pieces[y] = [];
             for (let x = 0; x < 8; x++) {
@@ -42,7 +42,7 @@ export class DefaultBoard extends Board {
         for (let i = 0; i < this.layout.length; i++) {
             let x = i % 8;
             let y = Math.floor(i / 8);
-            const char = this.layout.charAt(i);
+            const char = layout.charAt(i);
             this.pieces[x][y] = this.pieceTypes[char]?.(x, y) || null;
             if (this.pieces[x][y] != null && this.pieces[x][y].type == "King") {
                 this.assignKings(this.pieces[x][y]);
@@ -54,12 +54,13 @@ export class DefaultBoard extends Board {
         const piece = this.pieces[fX][fY];
 
         if (piece.type == "Pawn") {
+            const moved = piece.moved;
             let enPassantCapturePosition = piece.move(tX, tY, this.pieces, this.previousMove);
             if (enPassantCapturePosition != null) {
-                console.log("EnPassant Capture at: " + enPassantCapturePosition);
                 this.pieces[enPassantCapturePosition[0]][enPassantCapturePosition[1]] = new Pawn(((piece.color == "black") ? "white" : "black"), enPassantCapturePosition[0], enPassantCapturePosition[1]);
+                this.pieces[enPassantCapturePosition[0]][enPassantCapturePosition[1]].hasMoved = enPassantCapturePosition[2];
             }
-            piece.hasMoved = false;
+            piece.hasMoved = moved;
         }
         else {
             this.pieces[tX][tY] = piece;

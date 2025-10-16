@@ -11,4 +11,16 @@ export class Rook extends Piece {
     getMoves(board) {
         return getSlideMoves(this, board, [[1, 0], [0, -1], [-1, 0], [0, 1]], -1, false);
     }
+
+    move(tX, tY, board) {
+        super.move(tX, tY, board);
+        this.hasMoved = true;
+    }
+
+    getTypeChar() {
+        if (this.color == "white") {
+            return 'r';
+        }
+        return 'R';
+    }
 }
