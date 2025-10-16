@@ -89,6 +89,15 @@ export class Board {
         }
     }
 
+    assignKings(piece) {
+        if (piece.color == "white") {
+            this.whiteKing = piece;
+        }
+        if (piece.color == "black") {
+            this.blackKing = piece;
+        }
+    }
+
     getPieceMoves(x, y) {
         if (x < 0 || x > this.sizeX - 1 || y < 0 || y > this.sizeY - 1) {
             return [];
@@ -124,6 +133,7 @@ export class Board {
     }
 
     onClick(event) {
+        let potentialMoves = [];
 
         let data = null;
         const lastPreviousMove = this.previousMove;
@@ -142,15 +152,14 @@ export class Board {
         if (event.button == 0) {
             // If no piece is selected, select the piece and show its moves
             if (this.moves.length == 0) {
-                this.moves = this.getPieceMoves(x, y);
-
+                potentialMoves = this.getPieceMoves(x, y);
             }
             // If a piece is already selected, try to move it to the clicked position
             else {
                 //Attempt to move the piece
                 let move = this.movePiece(this.previousX, this.previousY, x, y, this.previousMove);
                 if (move == false) { //If the move was invalid, select the new piece and show its moves
-                    this.moves = this.getPieceMoves(x, y);
+                    potentialMoves = this.getPieceMoves(x, y);
                 }
                 else { //If the move was valid clear the moves
                     this.moves = [];
@@ -160,6 +169,7 @@ export class Board {
             }
         }
         //Store previous selected piece
+        this.moves = this.validateMoves(potentialMoves, x, y);
         this.previousX = x;
         this.previousY = y;
         return data;
@@ -176,5 +186,74 @@ export class Board {
         piece.move(move[0][2], move[0][3], this.pieces, move[1]);
         this.turn *= -1;
         this.previousMove = [move[0][0], move[0][1], move[0][2], move[0][3], piece.type];
+    }
+
+    validateMoves(potentialMoves, x, y) {
+        let validMoves = [];
+        for (let move of potentialMoves) {
+            if (!this.willBeInCheck(move, x, y)) {
+                validMoves.push(move);
+            }
+        }
+        return validMoves;
+    }
+
+    willBeInCheck(move, x, y) {
+        const capturedPiece = this.pieces[move[0]][move[1]];
+        const piece = this.pieces[x][y];
+        //console.log("Check for check:\n---------------------");
+        //console.table(this.pieces);
+        this.tempMovePiece(x, y, move[0], move[1]);
+        let inCheck = this.checkForCheck(piece, move);
+        this.tempMovePiece(move[0], move[1], x, y);
+        //console.log("---------------------------------------");
+        this.pieces[move[0]][move[1]] = capturedPiece;
+        return inCheck;
+    }
+
+    validateMoves(potentialMoves, x, y) {
+        let validMoves = [];
+        for (let move of potentialMoves) {
+            if (!this.willBeInCheck(move, x, y)) {
+                validMoves.push(move);
+            }
+        }
+        return validMoves;
+    }
+
+    willBeInCheck(move, x, y) {
+        const capturedPiece = this.pieces[move[0]][move[1]];
+        const piece = this.pieces[x][y];
+        //console.log("Check for check:\n---------------------");
+        //console.table(this.pieces);
+        this.tempMovePiece(x, y, move[0], move[1]);
+        let inCheck = this.checkForCheck(piece, move);
+        this.tempMovePiece(move[0], move[1], x, y);
+        //console.log("---------------------------------------");
+        this.pieces[move[0]][move[1]] = capturedPiece;
+        return inCheck;
+    }
+
+
+    tempMovePiece(fX, fY, tX, tY) {
+        const piece = this.pieces[fX][fY];
+
+        this.pieces[tX][tY] = piece;
+        this.pieces[fX][fY] = null;
+    }
+
+    checkForCheck(piece, move) {
+        if (this.turn == 1) {
+            if (piece.type == "King") {
+                return this.whiteKing.isInCheck(this, this.previousMove, move[0], move[1]);
+            }
+            return this.whiteKing.isInCheck(this, this.previousMove);
+        }
+        else {
+            if (piece.type == "King") {
+                return this.blackKing.isInCheck(this, this.previousMove, move[0], move[1]);
+            }
+            return this.blackKing.isInCheck(this, this.previousMove);
+        }
     }
 }
