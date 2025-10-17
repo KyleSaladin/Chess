@@ -144,14 +144,16 @@ export class Board {
 
         // Adjust for board orientation
         if (this.clientColor != "black") {
-            x = this.sizeX - x-1;
-            y = this.sizeY - y-1;
+            x = this.sizeX - x - 1;
+            y = this.sizeY - y - 1;
         }
 
         //If left click
         if (event.button == 0) {
             // If no piece is selected, select the piece and show its moves
             if (this.moves.length == 0) {
+                this.moves = this.getPieceMoves(x, y);
+
                 potentialMoves = this.getPieceMoves(x, y);
             }
             // If a piece is already selected, try to move it to the clicked position
@@ -159,6 +161,7 @@ export class Board {
                 //Attempt to move the piece
                 let move = this.movePiece(this.previousX, this.previousY, x, y, this.previousMove);
                 if (move == false) { //If the move was invalid, select the new piece and show its moves
+                    this.moves = this.getPieceMoves(x, y);
                     potentialMoves = this.getPieceMoves(x, y);
                 }
                 else { //If the move was valid clear the moves
@@ -167,13 +170,14 @@ export class Board {
                     data = [this.previousMove, lastPreviousMove];
                 }
             }
+            //Store previous selected piece
+            this.moves = this.validateMoves(potentialMoves, x, y);
+            this.previousX = x;
+            this.previousY = y;
+            return data;
         }
-        //Store previous selected piece
-        this.moves = this.validateMoves(potentialMoves, x, y);
-        this.previousX = x;
-        this.previousY = y;
-        return data;
     }
+
 
     movePieceWithoutValidation(move) {
         if (move == null) {
@@ -198,38 +202,16 @@ export class Board {
         return validMoves;
     }
 
-    willBeInCheck(move, x, y) {
-        const capturedPiece = this.pieces[move[0]][move[1]];
-        const piece = this.pieces[x][y];
-        //console.log("Check for check:\n---------------------");
-        //console.table(this.pieces);
-        this.tempMovePiece(x, y, move[0], move[1]);
-        let inCheck = this.checkForCheck(piece, move);
-        this.tempMovePiece(move[0], move[1], x, y);
-        //console.log("---------------------------------------");
-        this.pieces[move[0]][move[1]] = capturedPiece;
-        return inCheck;
-    }
-
-    validateMoves(potentialMoves, x, y) {
-        let validMoves = [];
-        for (let move of potentialMoves) {
-            if (!this.willBeInCheck(move, x, y)) {
-                validMoves.push(move);
-            }
-        }
-        return validMoves;
+    getCapturedPiece(move, x, y) {
+        return this.pieces[move[0]][move[1]];
     }
 
     willBeInCheck(move, x, y) {
-        const capturedPiece = this.pieces[move[0]][move[1]];
+        const capturedPiece = this.getCapturedPiece(move, x, y);
         const piece = this.pieces[x][y];
-        //console.log("Check for check:\n---------------------");
-        //console.table(this.pieces);
         this.tempMovePiece(x, y, move[0], move[1]);
         let inCheck = this.checkForCheck(piece, move);
         this.tempMovePiece(move[0], move[1], x, y);
-        //console.log("---------------------------------------");
         this.pieces[move[0]][move[1]] = capturedPiece;
         return inCheck;
     }

@@ -49,22 +49,4 @@ export class DefaultBoard extends Board {
             }
         }
     }
-
-    tempMovePiece(fX, fY, tX, tY) {
-        const piece = this.pieces[fX][fY];
-
-        if (piece.type == "Pawn") {
-            const moved = piece.moved;
-            let enPassantCapturePosition = piece.move(tX, tY, this.pieces, this.previousMove);
-            if (enPassantCapturePosition != null) {
-                this.pieces[enPassantCapturePosition[0]][enPassantCapturePosition[1]] = new Pawn(((piece.color == "black") ? "white" : "black"), enPassantCapturePosition[0], enPassantCapturePosition[1]);
-                this.pieces[enPassantCapturePosition[0]][enPassantCapturePosition[1]].hasMoved = enPassantCapturePosition[2];
-            }
-            piece.hasMoved = moved;
-        }
-        else {
-            this.pieces[tX][tY] = piece;
-            this.pieces[fX][fY] = null;
-        }
-    }
 }
