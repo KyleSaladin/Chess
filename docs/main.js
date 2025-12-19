@@ -1,5 +1,5 @@
 import { DefaultChess } from './defaultChess.js';
-import { PowChess } from './PowChess.js';
+import { PowChess } from './powChess.js';
 import { io } from "https://cdn.socket.io/4.5.4/socket.io.esm.min.js";
 
 // Initialize socket connection
