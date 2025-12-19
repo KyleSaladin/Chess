@@ -102,6 +102,12 @@ socket.on("retrieveBoardPosition", (data) => {
     }
 });
 
+//Only start game when both players are connected
+socket.on("startGame", () => {
+    console.log("Starting game");
+    myBoard.gameStarted = true;
+});
+
 function leaveMatch() {
     leaveRoom();
     document.getElementById("variantOverlay").style.display = "flex";
@@ -177,7 +183,7 @@ function joinSinglePlayer() {
     singlePlayer = true;
     closeRoomOverlay();
     connected = true;
-
+    myBoard.gameStarted = true;
     // In single player, allow both colors to be controlled
     myBoard.clientColor = "both";
 }

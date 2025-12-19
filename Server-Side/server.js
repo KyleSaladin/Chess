@@ -30,6 +30,7 @@ io.on("connection", (socket) => {
         }
         else if (numPlayers == 2) {
             color = "black";
+            io.to(roomId).emit("startGame");
         }
         else {
             color = "spectator";

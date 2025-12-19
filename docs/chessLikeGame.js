@@ -15,6 +15,7 @@ export class ChessLikeGame extends Board {
         this.previousY = -1; // Last selected piece Y coordinate
         this.whiteKing = null; // Reference to white king for check detection
         this.blackKing = null; // Reference to black king for check detection
+        this.gameStarted = false // Only allow play when game has started
     }
 
     /**
@@ -129,6 +130,9 @@ export class ChessLikeGame extends Board {
      * Manages piece selection and movement
      */
     onClick(event) {
+
+        if (!this.gameStarted) return;
+
         // Get the bounding rectangle of the canvas to get accurate coordinates
         const rect = event.target.getBoundingClientRect();
 
