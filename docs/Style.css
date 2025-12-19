@@ -1,0 +1,157 @@
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
+#roomOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9997;
+}
+
+#variantOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9998;
+}
+
+.room-box {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+    .room-box h1 {
+        margin-bottom: 30px;
+        font-size: 2em;
+        color: #93ED96;
+    }
+
+    .room-box input {
+        padding: 12px;
+        font-size: 16px;
+        width: 250px;
+        margin-bottom: 15px;
+        border: 2px solid #93ED96;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        text-align: center;
+    }
+
+        .room-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+    .room-box button {
+        padding: 12px 30px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #93ED96;
+        border: none;
+        border-radius: 5px;
+        color: #1a1a1a;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+        .room-box button:hover {
+            background: #5C26B6;
+            color: white;
+            transform: scale(1.05);
+        }
+
+.color-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.color-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .color-control label {
+        font-size: 14px;
+        min-width: 80px;
+    }
+
+input[type="color"] {
+    width: 50px;
+    height: 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#MainCanvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+}
+
+#iu2p1 {
+    color: #93ED96;
+    margin: 20px 0;
+}
+
+#iuizt {
+    color: #93ED96;
+    margin: 20px 0;
+}
+
+#endGameOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}

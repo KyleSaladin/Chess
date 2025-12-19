@@ -1,102 +1,140 @@
 import { Piece } from "./piece.js";
 import { getSlideMoves } from "./pieceMovementFunctions.js";
 
+/**
+ * King piece - can move one square in any direction, can castle
+ */
 export class King extends Piece {
     constructor(color, posX, posY) {
         super("King", color, posX, posY);
-
         this.hasMoved = false;
-        this.spritePosition = 80;
     }
 
     getMoves(board) {
-        let castleLeft = true;
-        let castleRight = true;
-        let moves = getSlideMoves(this, board, [[1, 0], [0, -1], [-1, 0], [0, 1], [1, 1], [-1, -1], [-1, 1], [1, -1]], 1, false);
+        // Normal king moves (one square in any direction)
+        const moves = getSlideMoves(
+            this,
+            board,
+            [[1, 0], [0, -1], [-1, 0], [0, 1], [1, 1], [-1, -1], [-1, 1], [1, -1]],
+            1,
+            false
+        );
 
-        if (board.pieces[0][this.posY] != null && board.pieces[0][this.posY].type == "Rook") {
-            if (board.pieces[0][this.posY].hasMoved == false && this.hasMoved == false) {
-                for (let i = 1; i < this.posX; i++) {
-                    if (board.pieces[i][this.posY] != null) {
-                        castleLeft = false;
+        // Check for castling opportunities
+        if (!this.hasMoved) {
+            // Queenside castling (left)
+            const leftRook = board.pieces[0][this.posY];
+            if (leftRook && leftRook.type === "Rook" && !leftRook.hasMoved) {
+                let canCastle = true;
+
+                // Check if squares between king and rook are empty
+                for (let x = 1; x < this.posX; x++) {
+                    if (board.pieces[x][this.posY] != null) {
+                        canCastle = false;
+                        break;
                     }
                 }
-                if (castleLeft) {
+
+                if (canCastle) {
                     moves.push([this.posX - 2, this.posY]);
                 }
             }
-        }
-        if (board.pieces[board.sizeX - 1][this.posY] != null && board.pieces[board.sizeX-1][this.posY].type == "Rook") {
-            if (board.pieces[board.sizeX - 1][this.posY].hasMoved == false && this.hasMoved == false) {
-                for (let i = board.sizeX - 2; i > this.posX; i--) {
-                    if (board.pieces[i][this.posY] != null) {
-                        castleRight = false;
+
+            // Kingside castling (right)
+            const rightRook = board.pieces[board.sizeX - 1][this.posY];
+            if (rightRook && rightRook.type === "Rook" && !rightRook.hasMoved) {
+                let canCastle = true;
+
+                // Check if squares between king and rook are empty
+                for (let x = this.posX + 1; x < board.sizeX - 1; x++) {
+                    if (board.pieces[x][this.posY] != null) {
+                        canCastle = false;
+                        break;
                     }
                 }
-                if (castleRight) {
+
+                if (canCastle) {
                     moves.push([this.posX + 2, this.posY]);
                 }
             }
         }
+
         return moves;
     }
 
+    move(tX, tY, pieces, previousMove) {
+        const oldX = this.posX;
 
-    move(tX, tY, board) {
-        super.move(tX, tY, board);
+        // Move the king
+        super.move(tX, tY, pieces, previousMove);
 
-        if (tX == this.posX + 2) {
-            let rook = board[board.length - 1][tY];
-            rook.move(tX - 1, tY, board);
-        }
-
-        if (tX == this.posX - 2) {
-            let rook = board[0][tY]
-            rook.move(tX + 1, tY, board);
+        // Handle castling - move the rook
+        if (Math.abs(tX - oldX) === 2) {
+            if (tX > oldX) {
+                // Kingside castle
+                console.log(pieces)
+                const rook = pieces[pieces.length - 1][tY];
+                if (rook) {
+                    rook.move(tX - 1, tY, pieces, previousMove);
+                }
+            } else {
+                // Queenside castle
+                const rook = pieces[0][tY];
+                if (rook) {
+                    rook.move(tX + 1, tY, pieces, previousMove);
+                }
+            }
         }
 
         this.hasMoved = true;
     }
 
-
+    /**
+     * Checks if this king is in check
+     * @param {Board} board - The game board
+     * @param {Array} previousMove - The previous move made
+     * @param {number} newX - Optional: check this X position instead of current
+     * @param {number} newY - Optional: check this Y position instead of current
+     */
     isInCheck(board, previousMove, newX, newY) {
+        // Use provided position or current position
+        const kingX = newX != null ? newX : this.posX;
+        const kingY = newY != null ? newY : this.posY;
+
+        // Check all enemy pieces
         for (let y = 0; y < board.sizeY; y++) {
             for (let x = 0; x < board.sizeX; x++) {
-                let piece = board.pieces[x][y];
-                if (piece == null || piece.color == this.color) {
+                const piece = board.pieces[x][y];
+
+                if (!piece || piece.color === this.color) {
                     continue;
                 }
-                let moves = piece.getMoves(board, previousMove);
 
-                let kingPosX = this.posX;
-                let kingPosY = this.posY;
+                const moves = piece.getMoves(board, previousMove);
 
-                if (newX != null || newY != null) {
-                    kingPosX = newX;
-                    kingPosY = newY;
-                }
-
-                if (this.containsArray(moves, [kingPosX, kingPosY])) {
+                // Check if any move targets the king
+                if (this.containsArray(moves, [kingX, kingY])) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 
+    /**
+     * Helper function to check if an array contains a specific coordinate pair
+     */
     containsArray(array, pair) {
-        if (array.length == 0) {
-            return false;
-        }
+        if (array.length === 0) return false;
+
         return array.some(sub =>
-            sub.length === pair.length && sub.every((val, i) => val === pair[i])
+            sub.length === pair.length &&
+            sub.every((val, i) => val === pair[i])
         );
     }
 
     getTypeChar() {
-        if (this.color == "white") {
-            return 'k';
-        }
-        return 'K';
+        return this.color === "white" ? 'k' : 'K';
     }
 }

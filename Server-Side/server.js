@@ -49,6 +49,9 @@ io.on("connection", (socket) => {
         console.log("Returning board position");
         socket.to(socket.data.roomId).emit("retrieveBoardPosition", data);
     });
+    socket.on("disconnectUser", () => {
+        socket.disconnect(true);
+    }
 
     socket.on("disconnect", () => {
         console.log("A user disconnected");

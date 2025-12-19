@@ -1,36 +1,57 @@
 import { Piece } from "./piece.js";
-import { Queen } from './queen.js';
+import { Queen } from './standardPieces.js';
 
-export class Pawn extends Piece{
+/**
+ * Pawn piece - moves forward, captures diagonally, can promote
+ */
+export class Pawn extends Piece {
     constructor(color, posX, posY) {
         super("Pawn", color, posX, posY);
         this.hasMoved = false;
-        this.spritePosition = 20;
     }
 
     getMoves(board, previousMove) {
-        let moves = [];
-        let forward = (this.color == "white") ? 1 : -1;
-        let x = this.posX;
-        let y = this.posY;
+        const moves = [];
+        const forward = this.color === "white" ? 1 : -1;
+        const x = this.posX;
+        const y = this.posY;
 
-        if (board.pieces[x][this.posY + forward] == null) {
-            moves.push([x, this.posY + forward]);
-            if (!this.hasMoved && board.pieces[x][this.posY + forward *  2] == null) {
-                moves.push([x, y + forward * 2]);
+        // Forward one square
+        if (y + forward >= 0 && y + forward < board.sizeY) {
+            if (board.pieces[x][y + forward] == null) {
+                moves.push([x, y + forward]);
+
+                // Forward two squares (first move only)
+                if (!this.hasMoved &&
+                    y + forward * 2 >= 0 &&
+                    y + forward * 2 < board.sizeY &&
+                    board.pieces[x][y + forward * 2] == null) {
+                    moves.push([x, y + forward * 2]);
+                }
             }
         }
-        if (this.posX > 0 && board.pieces[x - 1][y + forward] != null && board.pieces[x - 1][y + forward].color != this.color) {
-            moves.push([x - 1, y + forward]);
-        }
-        if (this.posX < board.sizeX - 1 && board.pieces[x + 1][y+forward] != null && board.pieces[x + 1][y + forward].color != this.color) {
-            moves.push([x + 1, y + forward]);
-        }
-        if (this.isEnPassant(previousMove)) {
-            if (previousMove[0] == this.posX - 1) {
+
+        // Diagonal captures
+        if (x > 0 && y + forward >= 0 && y + forward < board.sizeY) {
+            const diagLeft = board.pieces[x - 1][y + forward];
+            if (diagLeft && diagLeft.color !== this.color) {
                 moves.push([x - 1, y + forward]);
             }
-            if (previousMove[0] == this.posX + 1) {
+        }
+
+        if (x < board.sizeX - 1 && y + forward >= 0 && y + forward < board.sizeY) {
+            const diagRight = board.pieces[x + 1][y + forward];
+            if (diagRight && diagRight.color !== this.color) {
+                moves.push([x + 1, y + forward]);
+            }
+        }
+
+        // En passant
+        if (previousMove && this.isEnPassant(previousMove)) {
+            if (previousMove[0] === x - 1) {
+                moves.push([x - 1, y + forward]);
+            }
+            if (previousMove[0] === x + 1) {
                 moves.push([x + 1, y + forward]);
             }
         }
@@ -38,42 +59,52 @@ export class Pawn extends Piece{
         return moves;
     }
 
-    getCapturedPiece(move, x, y) {
-        if (Math.abs(move[0] - x) == 1 && Math.abs(move[1] - y) == 1) {
-            return this.pieces[move[0]][y];
+    /**
+     * Override getCapturedPiece for en passant
+     */
+    getCapturedPiece(move, x, y, pieces) {
+        // En passant capture
+        if (Math.abs(move[0] - x) === 1 && pieces[move[0]][move[1]] == null) {
+            return pieces[move[0]][y];
         }
-        super.getCapturedPiece(move, x, y);
+        return pieces[move[0]][move[1]];
     }
 
-    move(tX, tY, board, previousMove) {
-        if (this.isEnPassant(previousMove)) {
-            board[tX][this.posY] = null;
+    move(tX, tY, pieces, previousMove) {
+        // Handle en passant capture
+        if (previousMove && this.isEnPassant(previousMove)) {
+            if (Math.abs(tX - this.posX) === 1 && pieces[tX][tY] == null) {
+                pieces[tX][this.posY] = null;
+            }
         }
-        super.move(tX, tY, board, previousMove);
+
+        // Move the pawn
+        super.move(tX, tY, pieces, previousMove);
         this.hasMoved = true;
 
-        console.log("Pawn moved to", tX, tY, ",   Is it at: ", board.length - 1, '?');
-
-        if (this.color == "white" && tY == board.length - 1) {
-            console.log("Promote white pawn");
-
-            board[tX][tY] = new Queen("white", tX, tY);
-        }
-        if (this.color == "black" && tY == 0) {
-            console.log("Promote black pawn");
-            board[tX][tY] = new Queen("black", tX, tY);
+        // Check for promotion
+        if (this.color === "white" && tY === pieces[0].length - 1) {
+            pieces[tX][tY] = new Queen("white", tX, tY);
+        } else if (this.color === "black" && tY === 0) {
+            pieces[tX][tY] = new Queen("black", tX, tY);
         }
     }
 
+    /**
+     * Checks if en passant is possible
+     */
     isEnPassant(previousMove) {
-        let forward = (this.color == "white") ? 1 : -1;
-        return previousMove[4] == "Pawn" && Math.abs(previousMove[3] - previousMove[1]) == 2 && previousMove[1] == this.posY + forward * 2; 
+        if (!previousMove || previousMove[4] !== "Pawn") return false;
+
+        const forward = this.color === "white" ? 1 : -1;
+
+        // Check if enemy pawn moved two squares and is adjacent
+        return Math.abs(previousMove[3] - previousMove[1]) === 2 &&
+            previousMove[3] === this.posY &&
+            Math.abs(previousMove[2] - this.posX) === 1;
     }
 
     getTypeChar() {
-        if (this.color == "white") {
-            return 'p';
-        }
-        return 'P';
+        return this.color === "white" ? 'p' : 'P';
     }
 }

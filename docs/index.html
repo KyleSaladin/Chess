@@ -1,59 +1,64 @@
-<!DOCTYPE html>
-<html>
+﻿<!DOCTYPE html>
+<html lang="en">
+
 <head>
-    <title>Hello World</title>
-    <style>
-        #roomOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255,255,255,0.65);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .room-box {
-            margin: 20px;
-            text-align: center;
-        }
-
-            .room-box input {
-                padding: 10px;
-                font-size: 16px;
-                width: 200px;
-                margin-bottom: 10px;
-            }
-
-            .room-box button {
-                padding: 10px 20px;
-                font-size: 16px;
-                cursor: pointer;
-            }
-    </style>
+    <title>PowChess - Custom Chess Variant</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="GrapesJS Studio" />
+    <link rel="stylesheet" href="Style.css" />
 </head>
+
 <body>
+    <!-- Variant selection overlay -->
+    <div id="variantOverlay">
+        <div class="room-box" id="il2gr">
+            <h1 id="ibuwk">🎮 Chess</h1>
+            <button type="button" id="ChessButton">Chess </button>
+            <br id="ike3w" />
+            <br id="i0ljk" />
+            <div id="iu2p1">- OR -</div>
+            <br id="i523r" />
+            <button type="button" id="PowChessButton">Pow Chess</button>
+        </div>
+    </div><!-- Room selection overlay -->
     <div id="roomOverlay">
-        <div class="room-box">
-            <button id="SinglePlayerButton">Single Player</button>
-            <br>
-            <br>
-            <input type="text" id="JoinRoomInput" placeholder="Join Room ID" />
-            <br>
-            <button id="JoinRoomButton">Join Room</button>
+        <div class="room-box" id="id43j">
+            <h1 id="VariantLabel">🎮 </h1>
+            <button type="button" id="SinglePlayerButton">🎯 Single Player</button>
+            <br id="izbrv" />
+            <br id="ittz7" />
+            <div id="iuizt">- OR -</div>
+            <input type="text" id="JoinRoomInput" placeholder="Enter Room ID" />
+            <br id="ic93c" />
+            <button type="button" id="JoinRoomButton">🌐 Join Multiplayer</button>
         </div>
     </div>
-
-    <canvas id="MainCanvas">Browser Doesn't Support Canvas</canvas>
-
-    <input type="color" id="ColorPickerLight" value="#FBF3D7" />
-    <input type="color" id="ColorPickerDark" value="#93ED96" />
-    <input type="color" id="ColorPickerHighlight" value="#5C26B6" />
-
-    <script type="module" src="main.js"></script>
+    <div id="endGameOverlay">
+        <div id="icuqx" class="room-box">
+            <h1 id="EndGameText">______ Wins</h1>
+            <button type="button" id="ReturnButton"> Return </button>
+        </div>
+    </div><!-- Game canvas -->
+    <canvas id="MainCanvas">
+        Your browser doesn't support HTML5 Canvas
+    </canvas><!-- Color customization controls -->
+    <div class="color-controls" id="itvjy">
+        <div class="color-control" id="i6fmk">
+            <label id="ikdt1">Light Squares:</label>
+            <input type="color" id="ColorPickerLight" value="#FBF3D7" />
+        </div>
+        <div class="color-control" id="idg8u">
+            <label id="i0m5g">Dark Squares:</label>
+            <input type="color" id="ColorPickerDark" value="#93ED96" />
+        </div>
+        <div class="color-control" id="ibiex">
+            <label id="i4e5a">Highlights:</label>
+            <input type="color" id="ColorPickerHighlight" value="#5C26B6" />
+        </div>
+    </div><!-- Load main game script -->
+    <script type="module" src="main.js" id="iaxg5"></script>
 </body>
+
 </html>

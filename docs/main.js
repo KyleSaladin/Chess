@@ -1,152 +1,216 @@
-import { DefaultBoard } from './defaultBoard.js';
-
+import { DefaultChess } from './defaultChess.js';
+import { PowChess } from './PowChess.js';
 import { io } from "https://cdn.socket.io/4.5.4/socket.io.esm.min.js";
-let socket = io("https://chess-4bq0.onrender.com");
 
+// Initialize socket connection
+const socket = io("https://chess-4bq0.onrender.com");
 
+// Get DOM elements
 const canvas = document.getElementById("MainCanvas");
 const ctx = canvas.getContext("2d");
-
 const colorPickerDark = document.getElementById("ColorPickerDark");
 const colorPickerLight = document.getElementById("ColorPickerLight");
 const colorPickerHighlight = document.getElementById("ColorPickerHighlight");
+const gameEndOverlay = document.getElementById("endGameOverlay");
+let gameEndText = document.getElementById("EndGameText");
 
+gameEndOverlay.style.display = "none";
+
+// Add event listeners for return button
+document.getElementById("ReturnButton").addEventListener("click", leaveMatch);
+
+// Add event listeners for variant controls
+document.getElementById("ChessButton").addEventListener("click", setChessVariant);
+document.getElementById("PowChessButton").addEventListener("click", () => setChessVariant("powChess"));
+
+// Add event listeners for room controls
 document.getElementById("JoinRoomButton").addEventListener("click", joinRoom);
 document.getElementById("SinglePlayerButton").addEventListener("click", joinSinglePlayer);
 
-// Get device pixel ratio
+// Setup canvas with proper DPI scaling
 const DPR = window.devicePixelRatio || 1;
-
-// Set desired display size (CSS size)
 const displayWidth = Math.min(window.innerWidth, window.innerHeight) - 25;
 const displayHeight = Math.min(window.innerWidth, window.innerHeight) - 25;
 
-// Set internal resolution scaled by DPR
 canvas.width = displayWidth * DPR;
 canvas.height = displayHeight * DPR;
-
-// Set CSS size to match display size (not scaled)
 canvas.style.width = `${displayWidth}px`;
 canvas.style.height = `${displayHeight}px`;
 
-// Scale the context to match DPR
-ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // replaces ctx.scale for clarity
-
-// Disable smoothing for pixel art
+// Scale context to match DPR and disable smoothing for crisp pixels
+ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 ctx.imageSmoothingEnabled = false;
 
+// Initialize colors from color pickers
 let darkColor = hexToRgba(colorPickerDark.value, 1);
 let lightColor = hexToRgba(colorPickerLight.value, 1);
 let highlightColor = hexToRgba(colorPickerHighlight.value, 0.5);
 
-colorPickerDark.addEventListener("input", (event) => {
+// Update colors when color pickers change
+colorPickerDark.addEventListener("input", () => {
     darkColor = hexToRgba(colorPickerDark.value, 1);
 });
 
-colorPickerLight.addEventListener("input", (event) => {
+colorPickerLight.addEventListener("input", () => {
     lightColor = hexToRgba(colorPickerLight.value, 1);
 });
 
-colorPickerHighlight.addEventListener("input", (event) => {
+colorPickerHighlight.addEventListener("input", () => {
     highlightColor = hexToRgba(colorPickerHighlight.value, 0.5);
 });
 
+// Handle mouse clicks on the board
 document.addEventListener("mousedown", (event) => {
     if (!connected) return;
-    let move = myBoard.onClick(event);
+
+    const move = myBoard.onClick(event);
+
+    // Send move to server if valid and not in single player mode
     if (move != null && !singlePlayer) {
-        console.log("Send move", move);
+        console.log("Sending move to server:", move);
         socket.emit("move", move);
     }
 });
 
+// Socket event handlers
 socket.on("assignColor", (color) => {
-    let clientColor = color;
-    myBoard.clientColor = clientColor;
+    console.log("Assigned color:", color);
+    myBoard.clientColor = color;
 });
 
 socket.on("updateBoard", (data) => {
-    if (data != [[],[]]) {
+    // Update board with move from opponent
+    if (data && data[0] && data[0].length > 0) {
         myBoard.movePieceWithoutValidation(data);
     }
 });
 
-socket.on("requestBoardPosition", (data) => {
-    if (myBoard.clientColor == "white") {
-        let piecesToSend = "";
-        for (let y = 0; y < myBoard.sizeY; y++) {
-            for (let x = 0; x < myBoard.sizeX; x++) {
-                console.log(myBoard.pieces[x][y]);
-                if (myBoard.pieces[x][y] == null) {
-                    piecesToSend += "-";
-                    continue;
-                }
-                piecesToSend += myBoard.pieces[x][y].getTypeChar();
-           }
-        }
-        socket.emit("returnBoardPosition", piecesToSend);
+socket.on("requestBoardPosition", () => {
+    // Only white player sends board position (host)
+    if (myBoard.clientColor === "white") {
+        const boardString = myBoard.getBoardString();
+        console.log("Sending board position:", boardString);
+        socket.emit("returnBoardPosition", boardString);
     }
 });
 
 socket.on("retrieveBoardPosition", (data) => {
-    if (myBoard.clientColor == "black") { return; }
-    console.log("Board position retrieved");
-    console.log(data);
-    myBoard.generatePieces(data);
-    console.log(myBoard.pieces);
+    // Only black player receives board position (guest)
+    if (myBoard.clientColor === "black") {
+        console.log("Received board position:", data);
+        myBoard.generatePieces(data);
+    }
 });
-function closeOverlay() {
+
+function leaveMatch() {
+    leaveRoom();
+    document.getElementById("variantOverlay").style.display = "flex";
+    document.getElementById("roomOverlay").style.display = "flex";
+}
+
+function setChessVariant(variant) {
+    if (variant === "powChess") {
+
+        // Calculate tile size and center the board
+        const tileSize = Math.min(displayWidth, displayHeight) / 11; // Divide by max board dimension
+        const boardWidth = tileSize * 11; // PowChess is 11x10
+        const boardHeight = tileSize * 10;
+        const offsetX = (displayWidth - boardWidth) / 2;
+        const offsetY = (displayHeight - boardHeight) / 2;
+
+        // Initialize the chess board
+        myBoard = new PowChess(offsetX, offsetY, tileSize);
+
+        document.getElementById("VariantLabel").textContent += "Pow Chess";
+
+    } else {
+
+        // Calculate tile size and center the board
+        const tileSize = Math.min(displayWidth, displayHeight) / 8; // Divide by max board dimension
+        const boardWidth = tileSize * 8; // PowChess is 11x10
+        const boardHeight = tileSize * 8;
+        const offsetX = (displayWidth - boardWidth) / 2;
+        const offsetY = (displayHeight - boardHeight) / 2;
+
+        // Initialize the chess board
+        myBoard = new DefaultChess(offsetX, offsetY, tileSize);
+
+        document.getElementById("VariantLabel").textContent += "Chess";
+    }
+    
+    document.getElementById("variantOverlay").style.display = "none";
+}
+
+
+// Room management functions
+
+function closeRoomOverlay() {
     document.getElementById("roomOverlay").style.display = "none";
 }
 
 function joinRoom() {
     const roomId = document.getElementById("JoinRoomInput").value.trim();
     if (roomId) {
-        console.log("Joining room:", roomId);
-        socket.emit("joinRoom", roomId);
-        closeOverlay();
-
+        socket.emit("joinRoom", roomId + myBoard.variant);
+        closeRoomOverlay();
         connected = true;
     }
 }
+
+function leaveRoom() {
+    gameEndOverlay.style.display = "none";
+    socket.emit("disconnectUser");
+    connected = false;
+}
+
+export function openCheckmateOverlay(winner) {
+    gameEndText.textContent = winner === "white" ? "White Wins by Checkmate!" : "Black Wins by Checkmate!";
+    document.getElementById("endGameOverlay").style.display = "flex";
+}
+
+export function openStalemateOverlay() {
+    gameEndText.textContent = "Game Drawn by Stalemate!";
+    document.getElementById("endGameOverlay").style.display = "flex";
+}
+
 function joinSinglePlayer() {
     singlePlayer = true;
-    closeOverlay();
+    closeRoomOverlay();
     connected = true;
 
-    const random = Math.round(Math.random());
-    if (random == 0) {
-        myBoard.clientColor = "white";
-    }
-    else {
-        myBoard.clientColor = "black";
-    }
+    // In single player, allow both colors to be controlled
     myBoard.clientColor = "both";
 }
 
+// Game state variables
 let singlePlayer = false;
-
-const tileSize = Math.min(displayWidth, displayHeight) / 8
-let myBoard = new DefaultBoard(0, 0, tileSize);
-
 let connected = false;
 
+let myBoard = new DefaultChess(0, 0, 60); // Temporary initialization
+
+// Start animation loop
 animate();
+
 function animate() {
+    // Clear canvas
+    ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+    // Draw the board
     myBoard.draw(ctx, lightColor, darkColor, highlightColor);
 
     requestAnimationFrame(animate);
 }
 
+/**
+ * Converts hex color to RGBA format
+ * @param {string} hex - Hex color code (e.g., "#FBF3D7")
+ * @param {number} alpha - Alpha value (0-1)
+ * @returns {string} RGBA color string
+ */
 function hexToRgba(hex, alpha) {
-    // Remove the '#' if present
     hex = hex.replace(/^#/, '');
-
-    // Parse the hex color
-    let r = parseInt(hex.substring(0, 2), 16);
-    let g = parseInt(hex.substring(2, 4), 16);
-    let b = parseInt(hex.substring(4, 6), 16);
-
-    // Return the RGBA string
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }

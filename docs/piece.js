@@ -1,70 +1,101 @@
-﻿
+﻿/**
+ * Base Piece class - all chess pieces inherit from this
+ */
 export class Piece {
     constructor(type, color, posX, posY) {
+        this.type = type;
         this.color = color;
         this.posX = posX;
         this.posY = posY;
-        this.type = type;
 
+        // Load sprite image
         this.image = new Image();
-        this.image.src = "Sprites/PiecesBasic.png";
-        this.spritePosition = 0;
+        this.image.src = "Sprites/" + type + ".png";
     }
 
-    getMoves(board) {
-
+    /**
+     * Gets valid moves for this piece (implemented by subclasses)
+     */
+    getMoves(board, previousMove) {
+        return [];
     }
 
-    draw(ctx, size, lightColor, darkColor, clientColor, boardSizeX, boardSizeY) {
-        if (!this.image) return;
+    /**
+     * Draws the piece on the canvas
+     */
+    draw(ctx, size, lightColor, darkColor, clientColor, boardSizeX, boardSizeY, boardOffsetX, boardOffsetY) {
+        if (!this.image.complete) return;
 
-        let tintColor = (this.color === "white") ? lightColor : darkColor;
-
-        tintColor = this.setAlpha(tintColor,  0.5);
+        // Choose tint color based on piece color
+        const tintColor = this.setAlpha(
+            this.color === "white" ? lightColor : darkColor,
+            0.5
+        );
 
         const dpr = window.devicePixelRatio || 1;
 
-        // Create high-res offscreen canvas
+        // Create high-resolution offscreen canvas for crisp rendering
         const offCanvas = document.createElement('canvas');
         offCanvas.width = size * dpr;
         offCanvas.height = size * dpr;
         const offCtx = offCanvas.getContext('2d');
 
-        // Scale context to match device pixel ratio
         offCtx.scale(dpr, dpr);
-
-        // Disable smoothing for crisp pixels
         offCtx.imageSmoothingEnabled = false;
 
-        // Draw sprite onto offscreen canvas
-        offCtx.drawImage(this.image, this.spritePosition, 0, 20, 20, 0, 0, size, size);
+        // Draw sprite (assuming 20x20 sprite size)
+        offCtx.drawImage(this.image, 0, 0, 20, 20, 0, 0, size, size);
 
-        // Apply tint only where sprite pixels exist
+        // Apply tint where sprite pixels exist
         offCtx.fillStyle = tintColor;
         offCtx.globalCompositeOperation = 'source-atop';
         offCtx.fillRect(0, 0, size, size);
         offCtx.globalCompositeOperation = 'source-over';
 
-        // Disable smoothing on main canvas too
+        // Disable smoothing on main canvas
         ctx.imageSmoothingEnabled = false;
 
-        // Draw tinted sprite onto main canvas
-        if (clientColor == "black") {
-            ctx.drawImage(offCanvas, this.posX * size, this.posY * size, size, size);
+        // Calculate position (flip for white's perspective)
+        let drawX, drawY;
+        if (clientColor === "black") {
+            drawX = this.posX * size;
+            drawY = this.posY * size;
+        } else {
+            drawX = (boardSizeX - 1 - this.posX) * size;
+            drawY = (boardSizeY - 1 - this.posY) * size;
         }
-        else {
-            ctx.drawImage(offCanvas, (boardSizeX - 1 - this.posX) * size, (boardSizeY - 1 - this.posY) * size, size, size);
-        }
+
+        // Add board offset
+        drawX += boardOffsetX;
+        drawY += boardOffsetY;
+
+        ctx.drawImage(offCanvas, drawX, drawY, size, size);
     }
 
-    move(tX, tY, board) {
-        board[tX][tY] = this;
-        board[this.posX][this.posY] = null;
+    /**
+     * Moves this piece to a new position
+     */
+    move(tX, tY, pieces, previousMove) {
+        pieces[tX][tY] = this;
+        pieces[this.posX][this.posY] = null;
         this.posX = tX;
         this.posY = tY;
     }
 
+    /**
+     * Returns character representation of this piece for board syncing
+     */
+    getTypeChar() {
+        return '-';
+    }
+
+    /**
+     * Utility to set alpha channel of RGBA color
+     */
     setAlpha(rgbaString, newAlpha) {
-        return rgbaString.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, `rgba($1, $2, $3, ${newAlpha})`);
+        return rgbaString.replace(
+            /rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/,
+            `rgba($1, $2, $3, ${newAlpha})`
+        );
     }
 }
