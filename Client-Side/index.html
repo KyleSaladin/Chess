@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>PowChess - Custom Chess Variant</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="GrapesJS Studio" />
+    <link rel="stylesheet" href="Style.css" />
+</head>
+
+<body>
+    <!-- Variant selection overlay -->
+    <div id="variantOverlay">
+        <div class="room-box" id="il2gr">
+            <h1 id="ibuwk">🎮 Select Variant</h1>
+
+            <!-- Variant dropdown -->
+            <div class="variant-selector">
+                <div class="selected-variant" id="SelectedVariant">
+                    <span class="variant-text">Chess</span>
+                    <span class="arrow" id="VariantArrow">▶</span>
+                </div>
+                <ul class="variant-list" id="VariantList">
+                    <li data-variant="Chess">Chess</li>
+                    <li data-variant="PowChess">Pow Chess</li>
+                    <li data-variant="Shogi">Shogi</li>
+                    <!-- Add more variants -->
+                </ul>
+            </div>
+
+            <!-- Play button sits below dropdown -->
+            <button type="button" id="PlayButton">▶ Play</button>
+        </div>
+    </div>
+
+    <!-- Room selection overlay -->
+    <div id="roomOverlay">
+        <div class="room-box" id="id43j">
+            <h1 id="VariantLabel">🎮 </h1>
+            <button type="button" id="SinglePlayerButton">🎯 Single Player</button>
+            <div id="iuizt">- OR -</div>
+            <button type="button" id="AIButton">🎯 Against AI </button>
+            <div id="iuizt">- OR -</div>
+            <input type="text" id="JoinRoomInput" placeholder="Enter Room ID" />
+            <br id="ic93c" />
+            <button type="button" id="JoinRoomButton">🌐 Join Multiplayer</button>
+        </div>
+    </div>
+
+    <!-- End game overlay -->
+    <div id="endGameOverlay">
+        <div id="icuqx" class="room-box">
+            <h1 id="EndGameText">______ Wins</h1>
+            <button type="button" id="ReturnButton"> Return </button>
+        </div>
+    </div>
+
+    <!-- Promotion selection overlay -->
+    <div id="promotionOverlay">
+        <div class="promotion-box">
+            <h2>♟️ Choose Promotion</h2>
+            <div class="promotion-pieces" id="promotionPieces">
+                <!-- Pieces will be added dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Game canvas -->
+    <canvas id="MainCanvas">
+        Your browser doesn't support HTML5 Canvas
+    </canvas>
+
+    <!-- Color customization controls -->
+    <div id="ColorPanelWrapper">
+        <div class="color-toggle" id="ColorToggle">◀</div>
+
+        <div class="color-controls" id="ColorPanel">
+            <div class="color-control">
+                <label>Light Squares:</label>
+                <input type="color" id="ColorPickerLight" value="#FBF3D7" />
+            </div>
+            <div class="color-control">
+                <label>Dark Squares:</label>
+                <input type="color" id="ColorPickerDark" value="#93ED96" />
+            </div>
+            <div class="color-control">
+                <label>Highlights:</label>
+                <input type="color" id="ColorPickerHighlight" value="#5C26B6" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Load main game script -->
+    <script type="module" src="main.js" id="iaxg5"></script>
+</body>
+
+</html>

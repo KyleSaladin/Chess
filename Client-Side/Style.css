@@ -1,0 +1,355 @@
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background: #1a1a1a;
+    color: #ffffff;
+}
+
+#roomOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9997;
+}
+
+#variantOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9998;
+}
+
+.room-box {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 40px;
+    border-radius: 10px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+    .room-box h1 {
+        margin-bottom: 30px;
+        font-size: 2em;
+        color: #93ED96;
+    }
+
+    .room-box input {
+        padding: 12px;
+        font-size: 16px;
+        width: 250px;
+        margin-bottom: 15px;
+        border: 2px solid #93ED96;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        text-align: center;
+    }
+
+        .room-box input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+    .room-box button {
+        padding: 12px 30px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #93ED96;
+        border: none;
+        border-radius: 5px;
+        color: #1a1a1a;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+        .room-box button:hover {
+            background: #5C26B6;
+            color: white;
+            transform: scale(1.05);
+        }
+
+.color-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .color-control label {
+        font-size: 14px;
+        min-width: 80px;
+    }
+
+input[type="color"] {
+    width: 50px;
+    height: 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#MainCanvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+}
+
+#iu2p1 {
+    color: #93ED96;
+    margin: 20px 0;
+}
+
+#iuizt {
+    color: #93ED96;
+    margin: 20px 0;
+}
+
+#endGameOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.variant-selector {
+    position: relative;
+    display: inline-block;
+    width: 220px;
+    margin: 0 auto 20px auto; /* ensures space below for Play button */
+    text-align: left;
+}
+
+.selected-variant {
+    display: flex;
+    justify-content: space-between; /* arrow on right */
+    align-items: center;
+    padding: 12px;
+    font-size: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #93ED96;
+    border-radius: 5px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+    .selected-variant:hover {
+        background: #5C26B6;
+        color: #ffffff;
+        transform: scale(1.05);
+    }
+
+.arrow {
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+.variant-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    position: relative;
+    width: 100%;
+    margin-top: 5px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #93ED96;
+    border-radius: 5px;
+    list-style: none;
+    padding: 0;
+}
+
+    .variant-list.open {
+        max-height: 150px; /* animated expand */
+        overflow-y: auto; /* scroll if too many items */
+    }
+
+    .variant-list li {
+        padding: 10px;
+        font-size: 16px;
+        color: #ffffff;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+        .variant-list li:hover {
+            background: #93ED96;
+            color: #1a1a1a;
+        }
+
+/* Play button styled consistently */
+#PlayButton {
+    display: block;
+    margin: 20px auto 0 auto;
+    padding: 12px 30px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #93ED96;
+    border: none;
+    border-radius: 5px;
+    color: #1a1a1a;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+    #PlayButton:hover {
+        background: #5C26B6;
+        color: white;
+        transform: scale(1.05);
+    }
+
+/* Promotion Overlay */
+#promotionOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+    #promotionOverlay.active {
+        display: flex;
+    }
+
+.promotion-box {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 2px solid #93ED96;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+}
+
+    .promotion-box h2 {
+        margin: 0 0 25px 0;
+        font-size: 1.8em;
+        color: #93ED96;
+    }
+
+.promotion-pieces {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.promotion-piece {
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid #93ED96;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 10px;
+}
+
+    .promotion-piece:hover {
+        background: #5C26B6;
+        transform: scale(1.1);
+        box-shadow: 0 5px 20px rgba(147, 237, 150, 0.5);
+    }
+
+    .promotion-piece:active {
+        transform: scale(0.95);
+    }
+
+    .promotion-piece img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
+    }
+
+/* Unified frosted-glass container */
+#ColorPanelWrapper {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+
+    display: flex;
+    align-items: flex-start;
+
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.4s ease;
+    z-index: 10;
+}
+
+/* The sliding panel content */
+#ColorPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 15px;
+    width: 220px;
+}
+
+/* Arrow tab that overhangs */
+.color-toggle {
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    font-size: 18px;
+
+    background: transparent;
+    border: none;
+}
+
+/* Slide the entire wrapper */
+#ColorPanelWrapper.collapsed {
+    transform: translateX(245px);
+}
+
+/* Rotate arrow when collapsed */
+#ColorPanelWrapper.collapsed .color-toggle {
+    transform: rotate(180deg);
+}

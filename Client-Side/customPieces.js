@@ -1,5 +1,7 @@
 import { Piece } from './piece.js';
+import { PromotablePiece } from './promotablePiece.js';
 import { getSlideMoves } from './pieceMovementFunctions.js';
+import { showPromotionPopup } from "./main.js";
 
 //Amazon - combines Queen and Knight moves
 
@@ -120,9 +122,9 @@ export class Ninja extends Piece {
 
 //Pown - backwards pawn, moves diagonally forward, captures straight
 
-export class Pown extends Piece {
+export class Pown extends PromotablePiece {
     constructor(color, posX, posY) {
-        super("Pown", color, posX, posY);
+        super("Pown", color, posX, posY, [Ninja, Puppet], 8);
     }
 
     getMoves(board) {
@@ -153,14 +155,27 @@ export class Pown extends Piece {
         return moves;
     }
 
-    move(tX, tY, board, previousMove) {
-        super.move(tX, tY, board, previousMove);
+    async move(tX, tY, pieces, previousMove) {
 
-         //Promotion to Ninja
-        if (this.color === "white" && tY === board.sizeY - 1) {
-            board.pieces[tX][tY] = new Ninja(white, tX, tY);
-        } else if (this.color === "black" && tY === 0) {
-            board.pieces[tX][tY] = new Ninja(black, tX, tY);
+        // Move the pawn
+        super.move(tX, tY, pieces, previousMove);
+        this.hasMoved = true;
+
+
+        await this.tryPromote(tX, tY, pieces)
+        return true;
+    }
+
+    async tryPromote(tX, tY, pieces) {
+        const shouldPromote = (this.color === "white" && tY === pieces[0].length - 1) ||
+            (this.color === "black" && tY === 0);
+
+        if (shouldPromote) {
+            // Show promotion popup and wait for selection
+            const SelectedPieceClass = await showPromotionPopup(this.color, this.promotionPieces);
+
+            // Create the promoted piece
+            pieces[tX][tY] = new SelectedPieceClass(this.color, tX, tY);
         }
     }
 
@@ -182,7 +197,7 @@ export class Puppet extends Piece {
         const x = this.posX;
         const y = this.posY;
 
-         //All squares exactly 2 steps away in any direction
+        // All squares exactly 2 steps away in any direction (Chebyshev distance 2)
         const offsets = [
             [-2, -2], [-1, -2], [0, -2], [1, -2], [2, -2],
             [-2, -1], [2, -1],
@@ -195,10 +210,13 @@ export class Puppet extends Piece {
             const newX = x + dx;
             const newY = y + dy;
 
-            if (newX == 0 && newX == board.sizeX &&
-                newY == 0 && newY == board.sizeY) {
+            // bounds check: inside board
+            if (newX >= 0 && newX < board.sizeX &&
+                newY >= 0 && newY < board.sizeY) {
+
                 const targetPiece = board.pieces[newX][newY];
 
+                // empty square or enemy piece
                 if (targetPiece == null || targetPiece.color !== this.color) {
                     moves.push([newX, newY]);
                 }

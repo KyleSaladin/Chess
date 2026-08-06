@@ -27,7 +27,7 @@ export class PowChess extends ChessLikeGame {
             "popopppopop" +
             "-----------" +
             "-----------" +
-            "-----------" +
+            "-----u-----" +
             "-----------" +
             "-----------" +
             "-----------" +

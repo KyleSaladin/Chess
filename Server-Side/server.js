@@ -23,41 +23,46 @@ io.on("connection", (socket) => {
 
         const room = io.sockets.adapter.rooms.get(roomId);
         const numPlayers = room ? room.size : 0;
-        let color;
 
-        if (numPlayers == 1) {
+        let color;
+        if (numPlayers === 1) {
             color = "white";
-        }
-        else if (numPlayers == 2) {
+        } else if (numPlayers === 2) {
             color = "black";
             io.to(roomId).emit("startGame");
-        }
-        else {
+        } else {
             color = "spectator";
         }
 
         socket.data.color = color;
         socket.emit("assignColor", color);
-        io.to(roomId).emit("requestBoardPosition");
+
+        if (color !== "spectator") {
+            io.to(roomId).emit("requestBoardPosition");
+        }
 
         console.log("A user connected");
     });
+
     socket.on("move", (data) => {
-        console.log("Server is running");
+        if (!socket.data.roomId) return;
         socket.to(socket.data.roomId).emit("updateBoard", data);
     });
+
     socket.on("returnBoardPosition", (data) => {
-        console.log("Returning board position");
+        if (!socket.data.roomId) return;
         socket.to(socket.data.roomId).emit("retrieveBoardPosition", data);
     });
+
     socket.on("disconnectUser", () => {
         socket.disconnect(true);
-    }
+    });
 
     socket.on("disconnect", () => {
         console.log("A user disconnected");
     });
 });
+
 
 const PORT = 3000;
 server.listen(PORT, "0.0.0.0", () => {

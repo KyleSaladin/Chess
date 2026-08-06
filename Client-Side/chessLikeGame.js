@@ -55,6 +55,28 @@ export class ChessLikeGame extends Board {
         }
     }
 
+    getAllMoves(currentPlayerColor){
+        let moves = []
+
+        for (let x = 0; x < this.sizeX; x++) {
+            for (let y = 0; y < this.sizeY; y++) {
+                if (this.pieces[x][y] == null || this.pieces[x][y].color != currentPlayerColor) continue;
+                
+                let potentialMoves = this.getPieceMoves(x, y, currentPlayerColor)
+                
+                let thisMoves = this.validateMoves(potentialMoves, x, y);
+
+                for(let move of thisMoves){
+                    let thisMove = [x, y, move, this.previousMove]
+                    thisMove = thisMove.flat(2)
+                    moves.push(thisMove)
+                }
+            }
+        }
+
+        return moves
+    }
+
     /**
      * Gets valid moves for a piece at given coordinates
      * Checks if it's the correct turn and if the client can move that piece
@@ -88,23 +110,26 @@ export class ChessLikeGame extends Board {
      * Returns true if the move was successful
      */
     movePiece(fX, fY, tX, tY, previousMove) {
-        // Check if the target square is in the list of valid moves
-        if (!this.containsArray(this.moves, [tX, tY])) {
+        const piece = this.pieces[fX][fY];
+        console.log("movePiece called from", fX, fY, "to", tX, tY, "piece:", piece ? piece.type + " " + piece.color : "none");
+        console.log("clientColor:", this.clientColor, "turn:", this.turn, "moves:", this.moves);
+
+        if (!this.containsArray(this.moves, [tX, tY]) && piece.color == this.clientColor) {
+            console.log("Move rejected: target not in moves or color mismatch");
             return false;
         }
 
-        const piece = this.pieces[fX][fY];
         piece.move(tX, tY, this.pieces, previousMove);
-
-        console.log("Detected move:")
-
-        this.turn *= -1; // Switch turns
+        this.turn *= -1;
         this.previousMove = [fX, fY, tX, tY, piece.type];
 
-        this.detectCheckmate(previousMove)
+        console.log("Move applied, new turn:", this.turn, "previousMove:", this.previousMove);
+
+        this.detectCheckmate(previousMove);
 
         return true;
     }
+
 
     /**
      * Moves a piece without validation (for syncing with server)
@@ -131,61 +156,71 @@ export class ChessLikeGame extends Board {
      */
     onClick(event) {
 
-        if (!this.gameStarted) return;
+        console.log("=== onClick called ===");
+        console.log("gameStarted:", this.gameStarted, "clientColor:", this.clientColor, "turn:", this.turn);
 
-        // Get the bounding rectangle of the canvas to get accurate coordinates
+        if (!this.gameStarted) {
+            console.log("Click ignored: game not started");
+            return;
+        }
+
         const rect = event.target.getBoundingClientRect();
-
-        // Convert click coordinates to canvas space (accounting for CSS scaling)
         const canvasX = event.clientX - rect.left;
         const canvasY = event.clientY - rect.top;
 
-        // Convert canvas coordinates to board position (accounting for board offset)
         let x = Math.floor((canvasX - this.posX) / this.tileSize);
         let y = Math.floor((canvasY - this.posY) / this.tileSize);
 
-        // Flip coordinates if viewing from white's perspective
+        console.log("Raw coords:", x, y);
+
         if (this.clientColor !== "black") {
             x = this.sizeX - x - 1;
             y = this.sizeY - y - 1;
+            console.log("Flipped coords:", x, y);
         }
 
-        // Check bounds
         if (x < 0 || x >= this.sizeX || y < 0 || y >= this.sizeY) {
+            console.log("Click out of bounds");
             return null;
         }
+
+        const piece = this.pieces[x][y];
+        console.log("Piece at clicked square:", piece ? piece.type + " " + piece.color : "none");
 
         let data = null;
         const lastPreviousMove = this.previousMove;
 
-        // Left click only
         if (event.button === 0) {
             if (this.moves.length === 0) {
-                // No piece selected - select this piece and show its moves
                 const potentialMoves = this.getPieceMoves(x, y);
+                console.log("Potential moves:", potentialMoves);
                 this.moves = this.validateMoves(potentialMoves, x, y);
+                console.log("Validated moves:", this.moves);
             } else {
-                // Piece already selected - try to move it
+                console.log("Trying to move from", this.previousX, this.previousY, "to", x, y);
                 const moved = this.movePiece(this.previousX, this.previousY, x, y, this.previousMove);
+                console.log("Move success:", moved);
 
                 if (!moved) {
-                    // Invalid move - select new piece instead
                     const potentialMoves = this.getPieceMoves(x, y);
+                    console.log("New selection potential moves:", potentialMoves);
                     this.moves = this.validateMoves(potentialMoves, x, y);
+                    console.log("New selection validated moves:", this.moves);
                 } else {
-                    // Valid move - clear moves and return data for server
                     this.moves = [];
                     data = [this.previousMove, lastPreviousMove];
+                    console.log("Move data to send:", data);
                 }
             }
 
-            // Store the clicked position for next click
             this.previousX = x;
             this.previousY = y;
+            console.log("previousX/previousY set to:", this.previousX, this.previousY);
         }
 
         return data;
     }
+
 
     /**
      * Filters out moves that would put the king in check

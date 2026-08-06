@@ -1,12 +1,17 @@
-import { Piece } from "./piece.js";
+import { PromotablePiece } from "./promotablePiece.js";
 import { Queen } from './standardPieces.js';
+import { Knight } from './standardPieces.js';
+import { Rook } from './standardPieces.js';
+import { Bishop } from './standardPieces.js';
+
+import { showPromotionPopup } from "./main.js";
 
 /**
  * Pawn piece - moves forward, captures diagonally, can promote
  */
-export class Pawn extends Piece {
+export class Pawn extends PromotablePiece {
     constructor(color, posX, posY) {
-        super("Pawn", color, posX, posY);
+        super("Pawn", color, posX, posY, [ Queen, Knight, Rook, Bishop ], 8);
         this.hasMoved = false;
     }
 
@@ -70,7 +75,7 @@ export class Pawn extends Piece {
         return pieces[move[0]][move[1]];
     }
 
-    move(tX, tY, pieces, previousMove) {
+    async move(tX, tY, pieces, previousMove) {
         // Handle en passant capture
         if (previousMove && this.isEnPassant(previousMove)) {
             if (Math.abs(tX - this.posX) === 1 && pieces[tX][tY] == null) {
@@ -82,11 +87,21 @@ export class Pawn extends Piece {
         super.move(tX, tY, pieces, previousMove);
         this.hasMoved = true;
 
-        // Check for promotion
-        if (this.color === "white" && tY === pieces[0].length - 1) {
-            pieces[tX][tY] = new Queen("white", tX, tY);
-        } else if (this.color === "black" && tY === 0) {
-            pieces[tX][tY] = new Queen("black", tX, tY);
+
+        await this.tryPromote(tX, tY, pieces)
+        return true;
+    }
+
+    async tryPromote(tX, tY, pieces) {
+        const shouldPromote = (this.color === "white" && tY === pieces[0].length - 1) ||
+            (this.color === "black" && tY === 0);
+
+        if (shouldPromote) {
+            // Show promotion popup and wait for selection
+            const SelectedPieceClass = await showPromotionPopup(this.color, this.promotionPieces);
+
+            // Create the promoted piece
+            pieces[tX][tY] = new SelectedPieceClass(this.color, tX, tY);
         }
     }
 

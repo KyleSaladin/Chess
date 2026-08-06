@@ -1,5 +1,7 @@
-import { DefaultChess } from './defaultChess.js';
+﻿import { DefaultChess } from './defaultChess.js';
 import { PowChess } from './powChess.js';
+import { ShogiGame } from './shogi.js';
+import { RandomAI } from './RandomAI.js';
 import { io } from "https://cdn.socket.io/4.5.4/socket.io.esm.min.js";
 
 // Initialize socket connection
@@ -16,16 +18,50 @@ let gameEndText = document.getElementById("EndGameText");
 
 gameEndOverlay.style.display = "none";
 
+const selectedVariant = document.getElementById("SelectedVariant");
+const variantList = document.getElementById("VariantList");
+const variantArrow = document.getElementById("VariantArrow"); 
+
+//Select default variant on load
+document.querySelector(".variant-text").dataset.variant = "Chess";
+
+selectedVariant.addEventListener("click", () => {
+    const isOpen = variantList.classList.contains("open");
+    if (isOpen) {
+        variantList.classList.remove("open");
+        variantArrow.textContent = "▶"; // arrow right
+    } else {
+        variantList.classList.add("open");
+        variantArrow.textContent = "▼"; // arrow down
+    }
+});
+
+const colorPanelWrapper = document.getElementById("ColorPanelWrapper");
+const colorToggle = document.getElementById("ColorToggle");
+
+colorToggle.addEventListener("click", () => {
+    colorPanelWrapper.classList.toggle("collapsed");
+});
+
+variantList.querySelectorAll("li").forEach(item => {
+  item.addEventListener("click", () => {
+    const variantTextEl = document.querySelector(".variant-text");
+    variantTextEl.textContent = item.textContent;
+    variantTextEl.dataset.variant = item.dataset.variant; // ✅ set code name
+    variantList.classList.remove("open");
+    variantArrow.textContent = "▶"; // reset arrow right
+  });
+});
+
+document.getElementById("PlayButton").addEventListener("click", () => setChessVariant());
+
 // Add event listeners for return button
 document.getElementById("ReturnButton").addEventListener("click", leaveMatch);
-
-// Add event listeners for variant controls
-document.getElementById("ChessButton").addEventListener("click", setChessVariant);
-document.getElementById("PowChessButton").addEventListener("click", () => setChessVariant("powChess"));
 
 // Add event listeners for room controls
 document.getElementById("JoinRoomButton").addEventListener("click", joinRoom);
 document.getElementById("SinglePlayerButton").addEventListener("click", joinSinglePlayer);
+document.getElementById("AIButton").addEventListener("click", joinAgainstAI)
 
 // Setup canvas with proper DPI scaling
 const DPR = window.devicePixelRatio || 1;
@@ -57,19 +93,6 @@ colorPickerLight.addEventListener("input", () => {
 
 colorPickerHighlight.addEventListener("input", () => {
     highlightColor = hexToRgba(colorPickerHighlight.value, 0.5);
-});
-
-// Handle mouse clicks on the board
-document.addEventListener("mousedown", (event) => {
-    if (!connected) return;
-
-    const move = myBoard.onClick(event);
-
-    // Send move to server if valid and not in single player mode
-    if (move != null && !singlePlayer) {
-        console.log("Sending move to server:", move);
-        socket.emit("move", move);
-    }
 });
 
 // Socket event handlers
@@ -104,9 +127,11 @@ socket.on("retrieveBoardPosition", (data) => {
 
 //Only start game when both players are connected
 socket.on("startGame", () => {
-    console.log("Starting game");
+    console.log("Starting game, clientColor =", myBoard.clientColor);
     myBoard.gameStarted = true;
+    console.log("gameStarted =", myBoard.gameStarted);
 });
+
 
 function leaveMatch() {
     leaveRoom();
@@ -114,8 +139,9 @@ function leaveMatch() {
     document.getElementById("roomOverlay").style.display = "flex";
 }
 
-function setChessVariant(variant) {
-    if (variant === "powChess") {
+function setChessVariant() {
+    const variant = document.querySelector(".variant-text").dataset.variant;
+    if (variant === "PowChess") {
 
         // Calculate tile size and center the board
         const tileSize = Math.min(displayWidth, displayHeight) / 11; // Divide by max board dimension
@@ -129,7 +155,7 @@ function setChessVariant(variant) {
 
         document.getElementById("VariantLabel").textContent += "Pow Chess";
 
-    } else {
+    } else if (variant === "Chess") {
 
         // Calculate tile size and center the board
         const tileSize = Math.min(displayWidth, displayHeight) / 8; // Divide by max board dimension
@@ -142,6 +168,20 @@ function setChessVariant(variant) {
         myBoard = new DefaultChess(offsetX, offsetY, tileSize);
 
         document.getElementById("VariantLabel").textContent += "Chess";
+    } else if (variant === "Shogi") {
+        // Calculate tile size and center the board
+        const tileSize = Math.min(displayWidth, displayHeight) / 9; // Divide by max board dimension
+        const boardWidth = tileSize * 9; // Shogi is 9x9
+        const boardHeight = tileSize * 9;
+        const offsetX = (displayWidth - boardWidth) / 2;
+        const offsetY = (displayHeight - boardHeight) / 2;
+        // Initialize the chess board
+        myBoard = new ShogiGame(offsetX, offsetY, tileSize);
+        document.getElementById("VariantLabel").textContent += "Shogi";
+    } else {
+        const variantTextEl = document.querySelector(".variant-text");
+        variantTextEl.textContent = "Variant Unavailable";
+        return; // Invalid variant
     }
     
     document.getElementById("variantOverlay").style.display = "none";
@@ -152,6 +192,45 @@ function setChessVariant(variant) {
 
 function closeRoomOverlay() {
     document.getElementById("roomOverlay").style.display = "none";
+}
+
+/**
+ * Shows promotion popup and returns a promise that resolves with the selected piece class
+ */
+export function showPromotionPopup(color, promotionPieces) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('promotionOverlay');
+        const piecesContainer = document.getElementById('promotionPieces');
+
+        // Clear existing pieces
+        piecesContainer.innerHTML = '';
+
+        // Display each piece type from the promotionPieces array
+        promotionPieces.forEach(PieceClass => {
+            const pieceDiv = document.createElement('div');
+            pieceDiv.className = 'promotion-piece';
+
+            // Create a temporary instance to get the image path
+            const tempPiece = new PieceClass(color, 0, 0);
+
+            // Create image element
+            const img = document.createElement('img');
+            img.src = tempPiece.image.src;
+            img.alt = 'promotion option';
+
+            pieceDiv.appendChild(img);
+
+            // Handle selection
+            pieceDiv.addEventListener('click', () => {
+                overlay.classList.remove('active');
+                resolve(PieceClass);
+            });
+
+            piecesContainer.appendChild(pieceDiv);
+        });
+
+        overlay.classList.add('active');
+    });
 }
 
 function joinRoom() {
@@ -188,11 +267,41 @@ function joinSinglePlayer() {
     myBoard.clientColor = "both";
 }
 
+function joinAgainstAI() {
+    singlePlayer = true;
+    closeRoomOverlay();
+    connected = true;
+    myBoard.gameStarted = true;
+    // Against AI, choose random color to play as
+    let playerColor = 0 //Math.round(Math.random())
+    myBoard.clientColor = (playerColor == 0) ? "white" : "black";
+    let aiColor = (playerColor == 1) ? "white" : "black";
+    myAI = new RandomAI(myBoard, aiColor)
+}
+
+// Handle mouse clicks on the board
+document.addEventListener("mousedown", (event) => {
+    if (!connected) return;
+
+    const move = myBoard.onClick(event);
+
+    // Send move to server if valid and not in single player mode
+    if (move != null && !singlePlayer) {
+        console.log("Sending move to server:", move);
+        socket.emit("move", move);
+    }
+
+    if (move != null && myAI != null){
+        myAI.move()
+    }
+});
+
 // Game state variables
 let singlePlayer = false;
 let connected = false;
 
 let myBoard = new DefaultChess(0, 0, 60); // Temporary initialization
+let myAI = null
 
 // Start animation loop
 animate();

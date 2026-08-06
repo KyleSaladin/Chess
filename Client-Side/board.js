@@ -109,7 +109,8 @@ export class Board {
                         this.sizeX,
                         this.sizeY,
                         this.posX,
-                        this.posY
+                        this.posY,
+                        this.tileSize
                     );
                 }
             }

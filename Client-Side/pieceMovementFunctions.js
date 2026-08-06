@@ -9,7 +9,7 @@
  * @param {number} distancePerJump - Distance between jumps (for Dragon-like pieces)
  * @returns {Array} Array of valid move coordinates [[x, y], ...]
  */
-export function getSlideMoves(piece, board, directions, slideDistance, canJump, distancePerJump = 1) {
+export function getSlideMoves(piece, board, directions, slideDistance = -1, canJump = false, distancePerJump = 1) {
     const moves = [];
 
     for (const [dx, dy] of directions) {

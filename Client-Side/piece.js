@@ -10,7 +10,9 @@ export class Piece {
 
         // Load sprite image
         this.image = new Image();
-        this.image.src = "Sprites/" + type + ".png";
+        if ("Sprites/" + type + ".png") {
+            this.image.src = "Sprites/" + type + ".png";
+        }
     }
 
     /**
@@ -23,7 +25,7 @@ export class Piece {
     /**
      * Draws the piece on the canvas
      */
-    draw(ctx, size, lightColor, darkColor, clientColor, boardSizeX, boardSizeY, boardOffsetX, boardOffsetY) {
+    draw(ctx, size, lightColor, darkColor, clientColor, boardSizeX, boardSizeY, boardOffsetX, boardOffsetY, tileSize) {
         if (!this.image.complete) return;
 
         // Choose tint color based on piece color
@@ -34,42 +36,50 @@ export class Piece {
 
         const dpr = window.devicePixelRatio || 1;
 
-        // Create high-resolution offscreen canvas for crisp rendering
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = size * dpr;
-        offCanvas.height = size * dpr;
-        const offCtx = offCanvas.getContext('2d');
+        // Get actual sprite dimensions
+        const spriteW = this.image.naturalWidth;
+        const spriteH = this.image.naturalHeight;
+
+        // Offscreen canvas uses tileSize
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = tileSize * dpr;
+        offCanvas.height = tileSize * dpr;
+        const offCtx = offCanvas.getContext("2d");
 
         offCtx.scale(dpr, dpr);
         offCtx.imageSmoothingEnabled = false;
 
-        // Draw sprite (assuming 20x20 sprite size)
-        offCtx.drawImage(this.image, 0, 0, 20, 20, 0, 0, size, size);
+        // Draw sprite scaled to tileSize
+        offCtx.drawImage(
+            this.image,
+            0, 0, spriteW, spriteH,   // source rect
+            0, 0, tileSize, tileSize  // destination rect
+        );
 
-        // Apply tint where sprite pixels exist
+        // Apply tint
         offCtx.fillStyle = tintColor;
-        offCtx.globalCompositeOperation = 'source-atop';
-        offCtx.fillRect(0, 0, size, size);
-        offCtx.globalCompositeOperation = 'source-over';
+        offCtx.globalCompositeOperation = "source-atop";
+        offCtx.fillRect(0, 0, tileSize, tileSize);
+        offCtx.globalCompositeOperation = "source-over";
 
-        // Disable smoothing on main canvas
         ctx.imageSmoothingEnabled = false;
 
-        // Calculate position (flip for white's perspective)
+        // Calculate board position (flip for white's perspective)
         let drawX, drawY;
         if (clientColor === "black") {
-            drawX = this.posX * size;
-            drawY = this.posY * size;
+            drawX = this.posX * tileSize;
+            drawY = this.posY * tileSize;
         } else {
-            drawX = (boardSizeX - 1 - this.posX) * size;
-            drawY = (boardSizeY - 1 - this.posY) * size;
+            drawX = (boardSizeX - 1 - this.posX) * tileSize;
+            drawY = (boardSizeY - 1 - this.posY) * tileSize;
         }
 
         // Add board offset
         drawX += boardOffsetX;
         drawY += boardOffsetY;
 
-        ctx.drawImage(offCanvas, drawX, drawY, size, size);
+        // Draw final piece
+        ctx.drawImage(offCanvas, drawX, drawY, tileSize, tileSize);
     }
 
     /**
