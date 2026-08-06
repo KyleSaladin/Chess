@@ -132,6 +132,10 @@ socket.on("startGame", () => {
     console.log("gameStarted =", myBoard.gameStarted);
 });
 
+socket.on("roomClosed", () => {
+    leaveMatch()
+});
+
 
 function leaveMatch() {
     leaveRoom();

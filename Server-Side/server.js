@@ -59,7 +59,33 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log("A user disconnected");
+        const roomId = socket.data.roomId;
+        const color = socket.data.color;
+
+        console.log(`User disconnected: ${color} in room ${roomId}`);
+
+        if (!roomId) return;
+
+        // If a player (white or black) disconnects, end the room
+        if (color === "white" || color === "black") {
+            console.log("Player disconnected — ending room:", roomId);
+
+            // Notify everyone in the room
+            io.to(roomId).emit("roomClosed");
+
+            // Kick everyone out of the room
+            const room = io.sockets.adapter.rooms.get(roomId);
+            if (room) {
+                for (const socketId of room) {
+                    const s = io.sockets.sockets.get(socketId);
+                    if (s) {
+                        s.leave(roomId);
+                        s.data.roomId = null;
+                        s.data.color = null;
+                    }
+                }
+            }
+        }
     });
 });
 
