@@ -114,7 +114,7 @@ export class ChessLikeGame extends Board {
         console.log("movePiece called from", fX, fY, "to", tX, tY, "piece:", piece ? piece.type + " " + piece.color : "none");
         console.log("clientColor:", this.clientColor, "turn:", this.turn, "moves:", this.moves);
 
-        if (!this.containsArray(this.moves, [tX, tY]) && (piece.color == this.clientColor || this.clientColor == both)) {
+        if (!this.containsArray(this.moves, [tX, tY]) && (piece.color == this.clientColor || this.clientColor == "both")) {
             console.log("Move rejected: target not in moves or color mismatch");
             return false;
         }
